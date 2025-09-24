@@ -1,9 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const userName = localStorage.getItem("userName") || "";
+  const { userName, logout } = useAuth();
 
   return (
   <nav className="fixed top-0 left-0 w-full z-50 bg-transparent flex flex-col px-8 h-24 pb-2">
@@ -36,11 +37,7 @@ const NavBar = () => {
         <button
           className="logout-btn px-12 py-2 text-base md:text-lg rounded-full flex items-center justify-center font-bold min-w-[120px] absolute right-0 top-1/2 -translate-y-1/2"
           title="Logout"
-          onClick={() => {
-            localStorage.removeItem('userId');
-            localStorage.removeItem('userName');
-            navigate('/');
-          }}
+          onClick={() => { logout(); navigate('/'); }}
         >
           LOGOUT
         </button>

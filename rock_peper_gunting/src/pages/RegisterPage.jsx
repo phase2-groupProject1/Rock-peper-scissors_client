@@ -1,20 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ServerSide } from "../../helpers/httpClient";
+import { useAuth } from "../context/AuthContext.jsx";
 
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
+  const { register, loading, error } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!username.trim()) return;
     try {
-      // Kirim request register ke server
-      const { data } = await ServerSide.post("/users", { username });
-      localStorage.setItem('userName', data?.user?.username || username);
-      if (data?.user?.id) localStorage.setItem('userId', String(data.user.id));
+      await register(username);
       navigate("/homepage");
     } catch (err) {
       alert("Register failed: " + (err?.response?.data?.message || err.message));
@@ -47,10 +45,14 @@ const RegisterPage = () => {
         <button
           className="w-full py-2 rounded-md bg-gradient-to-r from-[#1fa9d6] to-[#1f6fd6] text-white font-bold text-lg tracking-wider shadow-md mb-6 relative overflow-hidden neon-btn group"
           onClick={handleRegister}
+          disabled={loading}
         >
-          <span className="relative z-10">ENTER ARENA</span>
+          <span className="relative z-10">{loading ? 'REGISTERING...' : 'ENTER ARENA'}</span>
           <span className="absolute left-0 top-0 w-full h-full bg-gradient-to-r from-white/30 to-transparent opacity-0 group-hover:opacity-80 transition-opacity duration-300 blur-[2px] animate-shine pointer-events-none" />
         </button>
+        {error && (
+          <div className="text-center text-red-400 mb-2">{error}</div>
+        )}
         <div className="flex justify-between items-center gap-2 bg-[rgba(16,18,26,0.8)] rounded-xl p-4 mt-2 border border-[#23243a]">
           <div className="flex flex-col items-center flex-1">
             <span className="text-3xl mb-1">🪨</span>
