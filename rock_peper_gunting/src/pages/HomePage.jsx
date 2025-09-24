@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ServerSide } from "../../helpers/httpClient";
 import CardRoom from "../component/CardRoom";
+import { io } from "socket.io-client";
 
 const HomePage = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [joinCode, setJoinCode] = useState("");
   const navigate = useNavigate();
+  const socketRef = useRef(null);
 
   const fetchRooms = async () => {
     try {
@@ -22,9 +25,62 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    // Start with a fetch for SSR/initial paint
     fetchRooms();
-    const interval = setInterval(fetchRooms, 5000);
-    return () => clearInterval(interval);
+
+    // Connect socket for realtime room updates
+    const socket = io("https://rps.ikaros.web.id", { transports: ["websocket"], autoConnect: true });
+    socketRef.current = socket;
+    socket.on("connect", () => {
+      socket.emit("rooms_request");
+    });
+    socket.on("rooms_update", (payload) => {
+      if (Array.isArray(payload?.rooms)) {
+        // Map payload: { room, players, status } into our UI rooms shape
+        setRooms((prev) => {
+          const prevByCode = new Map(prev.map((r) => [r.room_code || r.room, r]));
+          const incomingByCode = new Map(payload.rooms.map((ri) => [ri.room, ri]));
+
+          // Update existing rooms with incoming occupancy/status
+          const updated = prev.map((r) => {
+            const code = r.room_code || r.room;
+            const inc = incomingByCode.get(code);
+            if (!inc) return r; // keep as-is if no realtime info yet
+            return {
+              ...r,
+              room_code: code,
+              players: Array.isArray(r.players)
+                ? Array.from({ length: inc.players || 0 })
+                : (typeof r.players === 'number')
+                ? (inc.players || 0)
+                : Array.from({ length: inc.players || 0 }),
+              status: inc.status || r.status,
+            };
+          });
+
+          // Add any new rooms that only exist in realtime payload (e.g., created elsewhere and already joined)
+          incomingByCode.forEach((ri, code) => {
+            if (!prevByCode.has(code)) {
+              updated.push({ room_code: code, players: Array.from({ length: ri.players || 0 }), status: ri.status });
+            }
+          });
+
+          return updated;
+        });
+      }
+    });
+    socket.on("disconnect", () => {
+      // fallback to polling when disconnected
+    });
+
+    // Keep a light polling as a fallback every 10s
+    const interval = setInterval(fetchRooms, 10000);
+
+    return () => {
+      clearInterval(interval);
+      socket.removeAllListeners();
+      socket.disconnect();
+    };
   }, []);
 
   const handleCreateMultiplayerDuel = async () => {
@@ -47,6 +103,13 @@ const HomePage = () => {
       console.error("Error creating AI game room:", error);
       alert("Failed to create a new AI game. Please try again.");
     }
+  };
+
+  const handleJoinByCode = (ai = false) => {
+    if (!joinCode.trim()) return alert("Please enter a room code");
+    const username = localStorage.getItem("userName");
+    if (!username) return navigate("/");
+    navigate(ai ? `/game/ai/${joinCode.trim()}` : `/game/${joinCode.trim()}`);
   };
 
   return (
@@ -74,6 +137,24 @@ const HomePage = () => {
                 >
                   <span className="text-xl">🎮</span> VS AI OPPONENT
                 </button>
+                <div className="h-px bg-[#1fa9d6]/30 my-2" />
+                <div className="flex flex-col gap-2">
+                  <div className="text-[#8ad4ff] font-semibold">Join by Code</div>
+                  <div className="flex gap-2">
+                    <input
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                      placeholder="ROOM CODE"
+                      className="flex-1 px-3 py-2 rounded-lg border border-[#1fa9d6] bg-transparent text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1fa9d6]"
+                    />
+                    <button onClick={() => handleJoinByCode(false)} className="border-2 border-[#1fa9d6] text-[#1fa9d6] px-3 py-2 rounded-lg hover:bg-[#1fa9d6]/10">
+                      Join PvP
+                    </button>
+                    <button onClick={() => handleJoinByCode(true)} className="border-2 border-[#1fa9d6] text-[#1fa9d6] px-3 py-2 rounded-lg hover:bg-[#1fa9d6]/10">
+                      Join AI
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -95,10 +176,10 @@ const HomePage = () => {
                   </div>
                 )}
                 {/* Room list */}
-                {!loading &&
-                  !error &&
-                  rooms.length > 0 &&
-                  rooms.map((room) => <CardRoom key={room.id} room={room} />)}
+                {!loading && !error && rooms.length > 0 &&
+                  rooms.map((room) => (
+                    <CardRoom key={room.room_code || room.id} room={room} />
+                  ))}
                 {/* Empty state */}
                 {!loading && !error && rooms.length === 0 && (
                   <div className="rounded-xl border border-[#1fa9d6] bg-[rgba(16,18,26,0.8)] p-6 text-center text-gray-300 text-lg font-light">

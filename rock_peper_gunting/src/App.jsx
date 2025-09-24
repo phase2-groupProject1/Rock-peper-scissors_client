@@ -2,6 +2,7 @@ import React from "react";
 import NavBar from "./component/NavBar";
 import RegisterPage from "./pages/RegisterPage";
 import HomePage from "./pages/HomePage";
+import GameplayPage from "./pages/GameplayPage";
 import "./App.css";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 
@@ -20,6 +21,8 @@ function App() {
           }
         >
           <Route path="/homepage" element={<HomePage />} />
+          <Route path="/game/:roomCode" element={<GameplayPage />} />
+          <Route path="/game/ai/:roomCode" element={<GameplayPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

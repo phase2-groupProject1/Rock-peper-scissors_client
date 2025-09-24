@@ -12,8 +12,9 @@ const RegisterPage = () => {
     if (!username.trim()) return;
     try {
       // Kirim request register ke server
-      await ServerSide.post("/users", { username });
-      localStorage.setItem('userName', username);
+      const { data } = await ServerSide.post("/users", { username });
+      localStorage.setItem('userName', data?.user?.username || username);
+      if (data?.user?.id) localStorage.setItem('userId', String(data.user.id));
       navigate("/homepage");
     } catch (err) {
       alert("Register failed: " + (err?.response?.data?.message || err.message));
