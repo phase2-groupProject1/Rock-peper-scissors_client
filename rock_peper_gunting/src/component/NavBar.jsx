@@ -2,7 +2,7 @@ import React from "react";
 
 const NavBar = () => {
   // Simulasi: ganti dengan state/props dari auth context jika sudah ada
-  const userName = localStorage.getItem("username") || "";
+  const userName = localStorage.getItem("userName") || "";
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 navbar-bg shadow-lg flex flex-col px-8 h-24 pb-2">
@@ -41,7 +41,7 @@ const NavBar = () => {
       </div>
       {userName && (
         <div className="greeting fade-in">
-          Welcome back, <span className="username">{username}</span>!
+          Welcome back, <span className="username">{userName}</span>!
         </div>
       )}
     </nav>

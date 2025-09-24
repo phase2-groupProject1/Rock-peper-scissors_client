@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { ServerSide } from "../helpers/httpClient";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // Simulasi register, bisa tambahkan validasi/logic lain di sini
-    if (username.trim()) {
-      // Simpan username ke localStorage atau state global jika perlu
-      localStorage.setItem("username", username);
+    if (!username.trim()) return;
+    try {
+      // Kirim request register ke server
+      await ServerSide.post("/register", { username });
+      localStorage.setItem('userName', username);
       navigate("/homepage");
+    } catch (err) {
+      alert("Register failed: " + (err?.response?.data?.message || err.message));
     }
   };
 
