@@ -12,8 +12,8 @@ function App() {
     <>
       {userName ? (
         <>
-          <NavBar />
-          <HomePage />
+          {/* <NavBar />
+          <HomePage /> */}
         </>
       ) : (
         <RegisterPage />

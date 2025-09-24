@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { ServerSide } from "../helpers/httpClient";
+import { ServerSide } from "../../helpers/httpClient";
+
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");

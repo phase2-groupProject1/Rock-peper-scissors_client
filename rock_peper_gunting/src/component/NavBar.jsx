@@ -35,6 +35,10 @@ const NavBar = () => {
         <button
           className="logout-btn px-12 py-2 text-base md:text-lg rounded-full flex items-center justify-center font-bold min-w-[120px] absolute right-0 top-1/2 -translate-y-1/2"
           title="Logout"
+          onClick={() => {
+            localStorage.removeItem('userName');
+            window.location.reload();
+          }}
         >
           LOGOUT
         </button>
