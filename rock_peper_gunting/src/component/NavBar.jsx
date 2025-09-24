@@ -1,11 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const NavBar = () => {
-  // Simulasi: ganti dengan state/props dari auth context jika sudah ada
+  const navigate = useNavigate();
   const userName = localStorage.getItem("userName") || "";
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 navbar-bg shadow-lg flex flex-col px-8 h-24 pb-2">
+  <nav className="fixed top-0 left-0 w-full z-50 bg-transparent flex flex-col px-8 h-24 pb-2">
       <div className="relative flex items-center w-full h-full">
         <div className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-wide select-none neon-title fade-in float">
           Clash of Hands
@@ -37,7 +38,7 @@ const NavBar = () => {
           title="Logout"
           onClick={() => {
             localStorage.removeItem('userName');
-            window.location.reload();
+            navigate('/');
           }}
         >
           LOGOUT
@@ -45,7 +46,7 @@ const NavBar = () => {
       </div>
       {userName && (
         <div className="greeting fade-in">
-          Welcome back, <span className="username">{userName}</span>!
+          Welcome, <span className="username">{userName}</span>!
         </div>
       )}
     </nav>

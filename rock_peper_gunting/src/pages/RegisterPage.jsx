@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ServerSide } from "../../helpers/httpClient";
 
@@ -12,7 +12,7 @@ const RegisterPage = () => {
     if (!username.trim()) return;
     try {
       // Kirim request register ke server
-      await ServerSide.post("/register", { username });
+      await ServerSide.post("/users", { username });
       localStorage.setItem('userName', username);
       navigate("/homepage");
     } catch (err) {
@@ -44,10 +44,11 @@ const RegisterPage = () => {
           className="w-full mb-5 px-4 py-2 rounded-md border border-[#1fa9d6] bg-transparent text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1fa9d6]"
         />
         <button
-          className="w-full py-2 rounded-md bg-gradient-to-r from-[#1fa9d6] to-[#1f6fd6] text-white font-bold text-lg tracking-wider shadow-md hover:scale-105 transition-transform duration-200 mb-6"
+          className="w-full py-2 rounded-md bg-gradient-to-r from-[#1fa9d6] to-[#1f6fd6] text-white font-bold text-lg tracking-wider shadow-md mb-6 relative overflow-hidden neon-btn group"
           onClick={handleRegister}
         >
-          ENTER ARENA
+          <span className="relative z-10">ENTER ARENA</span>
+          <span className="absolute left-0 top-0 w-full h-full bg-gradient-to-r from-white/30 to-transparent opacity-0 group-hover:opacity-80 transition-opacity duration-300 blur-[2px] animate-shine pointer-events-none" />
         </button>
         <div className="flex justify-between items-center gap-2 bg-[rgba(16,18,26,0.8)] rounded-xl p-4 mt-2 border border-[#23243a]">
           <div className="flex flex-col items-center flex-1">
